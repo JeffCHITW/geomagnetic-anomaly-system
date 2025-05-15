@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地磁異常回報系統</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <h1 class="mb-4">地磁異常回報系統</h1>
+        
+        <div class="action-bar mb-3">
+            <button id="batchEditBtn" class="btn btn-primary" disabled>
+                <i class="bi bi-pencil-square"></i> 批量編輯
+            </button>
+            <span id="selectedCount" class="ms-3 text-muted">已選擇 0 筆</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectAll" class="form-check-input">
+                        </th>
+                        <th data-sort="id">編號 <i class="sort-icon"></i></th>
+                        <th data-sort="location">路段 <i class="sort-icon"></i></th>
+                        <th data-sort="reason">異常原因 <i class="sort-icon"></i></th>
+                        <th data-sort="status">處理情形 <i class="sort-icon"></i></th>
+                        <th>圖片</th>
+                        <th>備註</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="anomalyTableBody">
+                    <!-- Table rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Batch Edit Modal -->
+    <div class="modal fade" id="batchEditModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">批量編輯</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 批量編輯不支援圖片上傳，如需上傳圖片請使用單筆編輯功能。
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">處理情形</label>
+                        <select class="form-select" id="batchStatus">
+                            <option value="待確認">待確認</option>
+                            <option value="已處理">已處理</option>
+                            <option value="無法修復">無法修復</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">備註</label>
+                        <textarea class="form-control" id="batchNote" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirmBatchEdit">確認</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Single Edit Modal -->
+    <div class="modal fade" id="singleEditModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">編輯回報</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">處理情形</label>
+                        <select class="form-select" id="singleStatus">
+                            <option value="待確認">待確認</option>
+                            <option value="已處理">已處理</option>
+                            <option value="無法修復">無法修復</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">圖片上傳</label>
+                        <div class="alert alert-info mb-2">
+                            <i class="bi bi-info-circle"></i> 請上傳以下四種照片：
+                            <ul class="mb-0 mt-2">
+                                <li>有車車格照片</li>
+                                <li>無車車格照片</li>
+                                <li>有車車格照片(+APP截圖畫面)</li>
+                                <li>無車車格照片(+APP截圖畫面)</li>
+                            </ul>
+                        </div>
+                        <div class="image-upload-grid">
+                            <div class="image-upload-item">
+                                <label class="form-label">有車車格照片</label>
+                                <input type="file" class="form-control" accept="image/*" data-type="with-car">
+                                <div class="image-preview mt-2"></div>
+                            </div>
+                            <div class="image-upload-item">
+                                <label class="form-label">無車車格照片</label>
+                                <input type="file" class="form-control" accept="image/*" data-type="without-car">
+                                <div class="image-preview mt-2"></div>
+                            </div>
+                            <div class="image-upload-item">
+                                <label class="form-label">有車車格照片(+APP截圖)</label>
+                                <input type="file" class="form-control" accept="image/*" data-type="with-car-app">
+                                <div class="image-preview mt-2"></div>
+                            </div>
+                            <div class="image-upload-item">
+                                <label class="form-label">無車車格照片(+APP截圖)</label>
+                                <input type="file" class="form-control" accept="image/*" data-type="without-car-app">
+                                <div class="image-preview mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">備註</label>
+                        <textarea class="form-control" id="singleNote" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirmSingleEdit">儲存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">圖片預覽</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="previewImage" class="img-fluid" src="" alt="預覽圖片">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
