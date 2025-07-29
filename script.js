@@ -226,6 +226,11 @@ let state = {
     sortConfig: { key: null, direction: 'asc' }
 };
 
+// Admin state management
+let adminState = {
+    selectedRows: new Set()
+};
+
 // DOM Elements (將在 DOMContentLoaded 中初始化)
 let tableBody, selectAllCheckbox, batchEditBtn, selectedCountSpan, batchEditModal, singleEditModal, imagePreviewModal;
 
@@ -802,6 +807,7 @@ function renderAdminAnomalyTable() {
             : '無圖片';
         const tr = document.createElement('tr');
         tr.innerHTML = `
+            <td><input type="checkbox" class="form-check-input admin-row-checkbox" data-index="${idx}"></td>
             <td>${row.roadName || ''}</td>
             <td>${row.section || ''}</td>
             <td>${row.code || ''}</td>
@@ -810,8 +816,11 @@ function renderAdminAnomalyTable() {
             <td>${row.vendorReason || ''}</td>
             <td>${imgHtml}</td>
             <td>${row.note || ''}</td>
-            <td><button class="btn btn-sm btn-outline-primary admin-review-btn" data-index="${idx}">審核</button></td>
-            <td><button class="btn btn-sm btn-outline-info admin-notify-btn" data-index="${idx}">通知上傳</button></td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary admin-review-btn" data-index="${idx}">審核</button>
+                <button class="btn btn-sm btn-outline-info admin-notify-btn" data-index="${idx}">通知上傳</button>
+                ${row.reviewStatus ? `<span class="badge ${row.reviewStatus === '通過' ? 'bg-success' : 'bg-danger'} ms-1">${row.reviewStatus}</span>` : ''}
+            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -1011,4 +1020,86 @@ document.addEventListener('DOMContentLoaded', function() {
             showToast('已通知廠商上傳圖片');
         }
     });
+    
+    // 承辦批量審核功能
+    const adminSelectAll = document.getElementById('adminSelectAll');
+    const adminBatchReviewBtn = document.getElementById('adminBatchReviewBtn');
+    const adminSelectedCount = document.getElementById('adminSelectedCount');
+    
+    if (adminSelectAll && adminBatchReviewBtn && adminSelectedCount) {
+        // 全選 checkbox
+        adminSelectAll.addEventListener('change', function(e) {
+            const checkboxes = document.querySelectorAll('.admin-row-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = e.target.checked;
+                const index = parseInt(checkbox.dataset.index);
+                if (e.target.checked) {
+                    adminState.selectedRows.add(index);
+                } else {
+                    adminState.selectedRows.delete(index);
+                }
+            });
+            updateAdminUI();
+        });
+        
+        // 個別 checkbox
+        document.getElementById('adminAnomalyTableBody').addEventListener('change', function(e) {
+            if (e.target.classList.contains('admin-row-checkbox')) {
+                const index = parseInt(e.target.dataset.index);
+                if (e.target.checked) {
+                    adminState.selectedRows.add(index);
+                } else {
+                    adminState.selectedRows.delete(index);
+                }
+                updateAdminUI();
+            }
+        });
+        
+        // 批量審核按鈕
+        adminBatchReviewBtn.addEventListener('click', function() {
+            if (adminState.selectedRows.size === 0) {
+                showToast('請選擇要審核的項目');
+                return;
+            }
+            
+            document.getElementById('batchReviewCount').textContent = adminState.selectedRows.size;
+            document.getElementById('adminBatchReviewStatus').value = '通過';
+            document.getElementById('adminBatchReviewNote').value = '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('adminBatchReviewModal'));
+            modal.show();
+        });
+        
+        // 批量審核確認
+        document.getElementById('adminBatchReviewConfirm').addEventListener('click', function() {
+            const status = document.getElementById('adminBatchReviewStatus').value;
+            const note = document.getElementById('adminBatchReviewNote').value;
+            
+            // 批量更新選中的項目
+            adminState.selectedRows.forEach(index => {
+                if (adminAnomalyList[index]) {
+                    adminAnomalyList[index].reviewStatus = status;
+                    adminAnomalyList[index].reviewNote = note;
+                }
+            });
+            
+            // 關閉模態框
+            bootstrap.Modal.getInstance(document.getElementById('adminBatchReviewModal')).hide();
+            showToast(`已批量審核 ${adminState.selectedRows.size} 筆資料`);
+            
+            // 清空選擇
+            adminState.selectedRows.clear();
+            updateAdminUI();
+            
+            // 重新渲染表格
+            renderAdminAnomalyTable();
+        });
+        
+        // 更新承辦 UI
+        function updateAdminUI() {
+            adminBatchReviewBtn.disabled = adminState.selectedRows.size === 0;
+            adminSelectedCount.textContent = `已選擇 ${adminState.selectedRows.size} 筆`;
+            adminSelectAll.checked = adminState.selectedRows.size === adminAnomalyList.length;
+        }
+    }
 }); 

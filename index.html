@@ -177,10 +177,19 @@
         <div id="adminPanel" style="display:none;">
             <div class="container py-5">
                 <h2>地磁異常列表</h2>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span id="adminSelectedCount" class="text-muted">已選擇 0 筆</span>
+                    </div>
+                    <div>
+                        <button id="adminBatchReviewBtn" class="btn btn-primary" disabled>批量審核</button>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" id="adminSelectAll" class="form-check-input"></th>
                                 <th>道路名稱</th>
                                 <th>路段起迄</th>
                                 <th>車格代碼</th>
@@ -248,6 +257,38 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
                         <button type="button" class="btn btn-primary" id="adminReviewConfirm">確認</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 承辦批量審核 Modal -->
+        <div class="modal fade" id="adminBatchReviewModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">批量審核異常回報</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 將對選中的 <span id="batchReviewCount">0</span> 筆資料進行批量審核
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">審核結果</label>
+                            <select class="form-select" id="adminBatchReviewStatus">
+                                <option value="通過">通過</option>
+                                <option value="不通過">不通過</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">備註</label>
+                            <textarea class="form-control" id="adminBatchReviewNote" rows="3" placeholder="請輸入批量審核備註"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="adminBatchReviewConfirm">確認批量審核</button>
                     </div>
                 </div>
             </div>

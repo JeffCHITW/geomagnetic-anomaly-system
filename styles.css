@@ -376,4 +376,49 @@ h1 {
 
 #singleImagePreview .img-thumbnail:hover {
     border-color: var(--primary-color);
+}
+
+/* 承辦批量審核樣式 */
+#adminBatchReviewBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#adminSelectedCount {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.admin-row-checkbox:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.admin-row-checkbox:focus {
+    box-shadow: 0 0 0 0.2rem rgba(75, 94, 170, 0.25);
+}
+
+/* 審核狀態徽章 */
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.badge.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+/* 批量審核模態框樣式 */
+#adminBatchReviewModal .alert-info {
+    background-color: #e3f2fd;
+    border-color: #bbdefb;
+    color: #0d47a1;
+}
+
+#adminBatchReviewModal .modal-body {
+    padding: 1.5rem;
+}
+
+#batchReviewCount {
+    font-weight: bold;
+    color: var(--primary-color);
 } 
