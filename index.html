@@ -9,146 +9,375 @@
     <link href="styles.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container-fluid py-4">
-        <h1 class="mb-4">地磁異常回報系統</h1>
-        
-        <div class="action-bar mb-3">
-            <button id="batchEditBtn" class="btn btn-primary" disabled>
-                <i class="bi bi-pencil-square"></i> 批量編輯
-            </button>
-            <span id="selectedCount" class="ms-3 text-muted">已選擇 0 筆</span>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>
-                            <input type="checkbox" id="selectAll" class="form-check-input">
-                        </th>
-                        <th data-sort="id">編號 <i class="sort-icon"></i></th>
-                        <th data-sort="location">路段 <i class="sort-icon"></i></th>
-                        <th data-sort="reason">異常原因 <i class="sort-icon"></i></th>
-                        <th data-sort="status">處理情形 <i class="sort-icon"></i></th>
-                        <th>圖片</th>
-                        <th>備註</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="anomalyTableBody">
-                    <!-- Table rows will be dynamically inserted here -->
-                </tbody>
-            </table>
+    <!-- 登入頁面區塊 -->
+    <div id="loginPage" class="d-flex align-items-center justify-content-center vh-100 bg-light">
+        <div class="card shadow p-4" style="min-width:340px;max-width:360px;">
+            <h2 class="mb-3 text-center">系統登入</h2>
+            <div class="mb-3">
+                <label for="loginAccount" class="form-label">帳號</label>
+                <input type="text" class="form-control" id="loginAccount" autocomplete="username">
+            </div>
+            <div class="mb-3">
+                <label for="loginPassword" class="form-label">密碼</label>
+                <input type="password" class="form-control" id="loginPassword" autocomplete="current-password">
+            </div>
+            <div id="loginError" class="text-danger mb-2" style="display:none;"></div>
+            <button id="loginBtn" class="btn btn-primary w-100">登入</button>
         </div>
     </div>
 
-    <!-- Batch Edit Modal -->
-    <div class="modal fade" id="batchEditModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">批量編輯</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- 主畫面區塊（預設隱藏，登入後顯示） -->
+    <div id="mainApp" style="display:none;">
+        <div class="container-fluid py-4">
+            <h1 class="mb-4">地磁異常回報系統</h1>
+            <div class="action-bar mb-3">
+                <button id="batchEditBtn" class="btn btn-primary" disabled>
+                    <i class="bi bi-pencil-square"></i> 批量編輯
+                </button>
+                <span id="selectedCount" class="ms-3 text-muted">已選擇 0 筆</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
+                            <th>道路名稱</th>
+                            <th>路段起迄</th>
+                            <th>車格代碼</th>
+                            <th>監測異常原因</th>
+                            <th>修復狀況</th>
+                            <th>廠商檢測異常原因</th>
+                            <th>圖片</th>
+                            <th>備註</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="anomalyTableBody">
+                        <!-- Table rows will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="alert alert-secondary mb-4" style="font-size: 1rem;">
+                <strong>指標1: 訊號強度 &lt;=3 (訊號強度表 RSRP Level)</strong><br>
+                說明：設備傳輸訊號低弱會導致無法正常傳送進出車資訊，如廠商提供這資訊，可協助釐清該車格所處位置是否常處於訊號強度低落狀態，便於釐清傳輸異常是電信公司問題或設備問題<br><br>
+                <strong>指標2: 電池電壓不足</strong><br>
+                說明：電池電壓不足會導致設備運作狀態不穩定，如廠商提供這資訊，可協助釐清設備電量是否接近臨界值，也因此需請廠商提供設備電池電壓的最大、更換臨界值供參考。<br><br>
+                <strong>指標3：1日內無設備狀態回傳 (設備訊號最後更新時間 &gt;= 1 days)</strong><br>
+                說明：心跳包長時間無設備狀態更新，可能代表設備無預警失效
+            </div>
+
+            <!-- Batch Edit Modal -->
+            <div class="modal fade" id="batchEditModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">批量編輯</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> 批量編輯不支援圖片上傳，如需上傳圖片請使用單筆編輯功能。
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">修復狀態</label>
+                                <select class="form-select" id="batchStatus">
+                                    <option value="待確認">待確認</option>
+                                    <option value="已修復">已修復</option>
+                                    <option value="無法修復">無法修復</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">廠商檢測原因</label>
+                                <input type="text" class="form-control" id="batchVendorReason" placeholder="請輸入檢測原因">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">備註</label>
+                                <textarea class="form-control" id="batchNote" rows="3" placeholder="請輸入備註"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" id="confirmBatchEdit">確認</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> 批量編輯不支援圖片上傳，如需上傳圖片請使用單筆編輯功能。
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">處理情形</label>
-                        <select class="form-select" id="batchStatus">
-                            <option value="待確認">待確認</option>
-                            <option value="已處理">已處理</option>
-                            <option value="無法修復">無法修復</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">備註</label>
-                        <textarea class="form-control" id="batchNote" rows="3"></textarea>
+            </div>
+
+            <!-- Single Edit Modal -->
+            <div class="modal fade" id="singleEditModal" tabindex="-1">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">編輯回報</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3 mt-3">
+                                <label class="form-label">修復狀況</label>
+                                <select class="form-select" id="singleStatus">
+                                    <option value="待確認">待確認</option>
+                                    <option value="已修復">已修復</option>
+                                    <option value="無法修復">無法修復</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">廠商檢測原因</label>
+                                <input type="text" class="form-control" id="singleVendorReason" placeholder="請輸入檢測原因">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">備註</label>
+                                <textarea class="form-control" id="singleNote" rows="3" placeholder="請輸入備註"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">圖片上傳</label>
+                                <div class="alert alert-info mb-2">
+                                    請參照
+                                    <button type="button" class="btn btn-outline-info btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#imageSampleModal">圖片範本</button>
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-8">
+                                        <input type="file" class="form-control" id="singleImageUpload" accept="image/*">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="singleImageName" placeholder="圖片名稱">
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="addImageBtn">新增圖片</button>
+                                <div id="singleImagePreview" class="d-flex flex-wrap mt-3"></div>
+                                <div class="form-text">可上傳多張圖片，每張圖片需輸入名稱</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" id="confirmSingleEdit">儲存</button>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="confirmBatchEdit">確認</button>
+            </div>
+
+            <!-- Image Preview Modal -->
+            <div class="modal fade" id="imagePreviewModal" tabindex="-1">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">圖片預覽</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img id="previewImage" class="img-fluid" src="" alt="預覽圖片">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 承辦畫面預留區塊 -->
+        <div id="adminPanel" style="display:none;">
+            <div class="container py-5">
+                <h2>地磁異常列表</h2>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>道路名稱</th>
+                                <th>路段起迄</th>
+                                <th>車格代碼</th>
+                                <th>監測異常原因</th>
+                                <th>修復狀況</th>
+                                <th>廠商檢測異常原因</th>
+                                <th>圖片</th>
+                                <th>備註</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminAnomalyTableBody">
+                            <!-- 承辦地磁列表資料將由 JS 動態插入 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- 承辦審核進入的業者列表 -->
+        <div id="adminVendorPanel" style="display:none;">
+            <div class="container py-5">
+                <h2>地磁異常列表（審核）</h2>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>編號</th>
+                                <th>路段</th>
+                                <th>異常原因</th>
+                                <th>處理情形</th>
+                                <th>圖片</th>
+                                <th>審核狀態</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminVendorTableBody">
+                            <!-- 業者異常回報資料將由 JS 動態插入 -->
+                        </tbody>
+                    </table>
+                </div>
+                <button id="backToAdminList" class="btn btn-secondary mt-3">返回地磁列表</button>
+            </div>
+        </div>
+        <!-- 承辦審核 Modal -->
+        <div class="modal fade" id="adminReviewModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">審核異常回報</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">審核結果</label>
+                            <select class="form-select" id="adminReviewStatus">
+                                <option value="通過">通過</option>
+                                <option value="不通過">不通過</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">備註</label>
+                            <textarea class="form-control" id="adminReviewNote" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="adminReviewConfirm">確認</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Single Edit Modal -->
-    <div class="modal fade" id="singleEditModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+    <!-- 圖片範本 Modal -->
+    <div class="modal fade" id="imageSampleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">編輯回報</h5>
+                    <h5 class="modal-title">照片回覆範本</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">處理情形</label>
-                        <select class="form-select" id="singleStatus">
-                            <option value="待確認">待確認</option>
-                            <option value="已處理">已處理</option>
-                            <option value="無法修復">無法修復</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">圖片上傳</label>
-                        <div class="alert alert-info mb-2">
-                            <i class="bi bi-info-circle"></i> 請上傳以下四種照片：
-                            <ul class="mb-0 mt-2">
-                                <li>有車車格照片</li>
-                                <li>無車車格照片</li>
-                                <li>有車車格照片(+APP截圖畫面)</li>
-                                <li>無車車格照片(+APP截圖畫面)</li>
-                            </ul>
+                    <ul class="nav nav-tabs mb-3" id="sampleTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="sample1-tab" data-bs-toggle="tab" data-bs-target="#sample1" type="button" role="tab">施工取出</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="sample2-tab" data-bs-toggle="tab" data-bs-target="#sample2" type="button" role="tab">地磁損毀</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="sample3-tab" data-bs-toggle="tab" data-bs-target="#sample3" type="button" role="tab">訊號異常</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="sample1" role="tabpanel">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Notice" class="card-img-top" alt="工程告示牌">
+                                        <div class="card-body p-2"><div>工程告示牌</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Permit" class="card-img-top" alt="路證">
+                                        <div class="card-body p-2"><div>路證</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Scene" class="card-img-top" alt="現場照片，需含格號及街景">
+                                        <div class="card-body p-2"><div>現場照片，需含格號及街景</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Doc" class="card-img-top" alt="借用或租用公文">
+                                        <div class="card-body p-2"><div>借用或租用公文</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Magnet" class="card-img-top" alt="地磁裝回，需含格號及街景">
+                                        <div class="card-body p-2"><div>地磁裝回，需含格號及街景</div></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="image-upload-grid">
-                            <div class="image-upload-item">
-                                <label class="form-label">有車車格照片</label>
-                                <input type="file" class="form-control" accept="image/*" data-type="with-car">
-                                <div class="image-preview mt-2"></div>
+                        <div class="tab-pane fade" id="sample2" role="tabpanel">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Damage1" class="card-img-top" alt="損毀範例1">
+                                        <div class="card-body p-2"><div>損毀範例1</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Damage2" class="card-img-top" alt="損毀範例2">
+                                        <div class="card-body p-2"><div>損毀範例2</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Damage3" class="card-img-top" alt="損毀範例3">
+                                        <div class="card-body p-2"><div>損毀範例3</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Damage4" class="card-img-top" alt="損毀範例4">
+                                        <div class="card-body p-2"><div>損毀範例4</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Damage5" class="card-img-top" alt="損毀範例5">
+                                        <div class="card-body p-2"><div>損毀範例5</div></div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="image-upload-item">
-                                <label class="form-label">無車車格照片</label>
-                                <input type="file" class="form-control" accept="image/*" data-type="without-car">
-                                <div class="image-preview mt-2"></div>
-                            </div>
-                            <div class="image-upload-item">
-                                <label class="form-label">有車車格照片(+APP截圖)</label>
-                                <input type="file" class="form-control" accept="image/*" data-type="with-car-app">
-                                <div class="image-preview mt-2"></div>
-                            </div>
-                            <div class="image-upload-item">
-                                <label class="form-label">無車車格照片(+APP截圖)</label>
-                                <input type="file" class="form-control" accept="image/*" data-type="without-car-app">
-                                <div class="image-preview mt-2"></div>
+                        </div>
+                        <div class="tab-pane fade" id="sample3" role="tabpanel">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Signal1" class="card-img-top" alt="訊號異常範例1">
+                                        <div class="card-body p-2"><div>訊號異常範例1</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Signal2" class="card-img-top" alt="訊號異常範例2">
+                                        <div class="card-body p-2"><div>訊號異常範例2</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Signal3" class="card-img-top" alt="訊號異常範例3">
+                                        <div class="card-body p-2"><div>訊號異常範例3</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Signal4" class="card-img-top" alt="訊號異常範例4">
+                                        <div class="card-body p-2"><div>訊號異常範例4</div></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100 text-center">
+                                        <img src="https://via.placeholder.com/200x150?text=Signal5" class="card-img-top" alt="訊號異常範例5">
+                                        <div class="card-body p-2"><div>訊號異常範例5</div></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">備註</label>
-                        <textarea class="form-control" id="singleNote" rows="3"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="confirmSingleEdit">儲存</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Image Preview Modal -->
-    <div class="modal fade" id="imagePreviewModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">圖片預覽</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="previewImage" class="img-fluid" src="" alt="預覽圖片">
                 </div>
             </div>
         </div>
