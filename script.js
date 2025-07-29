@@ -771,6 +771,7 @@ const adminAnomalyList = [
         status: '待確認',
         vendorReason: '感測器異常',
         note: '需要進一步檢測',
+        reviewStatus: '通過',
         images: {
             'with-car': 'https://via.placeholder.com/60x60?text=有車',
             'without-car': 'https://via.placeholder.com/60x60?text=無車',
@@ -786,11 +787,44 @@ const adminAnomalyList = [
         status: '已處理',
         vendorReason: '電池電壓低',
         note: '已更換感測器',
+        reviewStatus: '不通過',
         images: {
             'with-car': 'https://via.placeholder.com/60x60?text=有車',
             'without-car': null,
             'with-car-app': 'https://via.placeholder.com/60x60?text=有車+APP',
             'without-car-app': null
+        }
+    },
+    {
+        roadName: '中正路',
+        section: 'C3-東段~C3-西段',
+        code: 'C3-003',
+        reason: '訊號干擾',
+        status: '待確認',
+        vendorReason: '環境電磁干擾',
+        note: '需重新檢測訊號強度',
+        reviewStatus: null, // 未審核
+        images: {
+            'with-car': 'https://via.placeholder.com/60x60?text=有車',
+            'without-car': 'https://via.placeholder.com/60x60?text=無車',
+            'with-car-app': null,
+            'without-car-app': null
+        }
+    },
+    {
+        roadName: '復興路',
+        section: 'D4-南段~D4-北段',
+        code: 'D4-004',
+        reason: '硬體損壞',
+        status: '已修復',
+        vendorReason: '感測器老化',
+        note: '已更換新感測器',
+        reviewStatus: '通過',
+        images: {
+            'with-car': null,
+            'without-car': 'https://via.placeholder.com/60x60?text=無車',
+            'with-car-app': null,
+            'without-car-app': 'https://via.placeholder.com/60x60?text=無車+APP'
         }
     }
 ];
@@ -816,10 +850,10 @@ function renderAdminAnomalyTable() {
             <td>${row.vendorReason || ''}</td>
             <td>${imgHtml}</td>
             <td>${row.note || ''}</td>
+            <td>${row.reviewStatus ? `<span class="badge ${row.reviewStatus === '通過' ? 'bg-success' : 'bg-danger'}">${row.reviewStatus}</span>` : '<span class="text-muted">未審核</span>'}</td>
             <td>
                 <button class="btn btn-sm btn-outline-primary admin-review-btn" data-index="${idx}">審核</button>
                 <button class="btn btn-sm btn-outline-info admin-notify-btn" data-index="${idx}">通知上傳</button>
-                ${row.reviewStatus ? `<span class="badge ${row.reviewStatus === '通過' ? 'bg-success' : 'bg-danger'} ms-1">${row.reviewStatus}</span>` : ''}
             </td>
         `;
         tbody.appendChild(tr);

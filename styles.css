@@ -421,4 +421,35 @@ h1 {
 #batchReviewCount {
     font-weight: bold;
     color: var(--primary-color);
+}
+
+/* 審核狀態欄位樣式 */
+.badge.bg-success {
+    background-color: #28a745 !important;
+    color: white !important;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.badge.bg-danger {
+    background-color: #dc3545 !important;
+    color: white !important;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.text-muted {
+    color: #6c757d !important;
+    font-size: 0.875rem;
+}
+
+/* 審核狀態欄位 hover 效果 */
+td .badge:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+}
+
+/* 表格行 hover 時審核狀態的視覺效果 */
+.table-hover tbody tr:hover .badge {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 } 
