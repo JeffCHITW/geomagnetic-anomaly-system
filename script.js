@@ -39,7 +39,7 @@ const sampleData = [
                 note: '建立回報'
             }
         ],
-        reviewStatus: ''
+        reviewStatus: '通過'
     },
     {
         id: 'GM002',
@@ -61,7 +61,7 @@ const sampleData = [
             }
         ],
         history: [],
-        reviewStatus: ''
+        reviewStatus: '不通過'
     },
     {
         id: 'GM003',
@@ -87,7 +87,7 @@ const sampleData = [
             }
         ],
         history: [],
-        reviewStatus: ''
+        reviewStatus: null
     },
     {
         id: 'GM004',
@@ -109,7 +109,7 @@ const sampleData = [
             }
         ],
         history: [],
-        reviewStatus: ''
+        reviewStatus: '通過'
     },
     {
         id: 'GM005',
@@ -135,7 +135,7 @@ const sampleData = [
             }
         ],
         history: [],
-        reviewStatus: ''
+        reviewStatus: '通過'
     },
     { 
         id: 'GM006', 
@@ -151,7 +151,8 @@ const sampleData = [
                 name: '現場勘查照片',
                 src: 'https://via.placeholder.com/800x600/6A5ACD/FFFFFF?text=現場勘查照片'
             }
-        ]
+        ],
+        reviewStatus: null
     },
     { 
         id: 'GM007', 
@@ -167,7 +168,8 @@ const sampleData = [
                 name: '調整前後對比',
                 src: 'https://via.placeholder.com/800x600/98FB98/FFFFFF?text=調整前後對比'
             }
-        ]
+        ],
+        reviewStatus: '通過'
     },
     { 
         id: 'GM008', 
@@ -183,7 +185,8 @@ const sampleData = [
                 name: '設備損壞狀況',
                 src: 'https://via.placeholder.com/800x600/CD5C5C/FFFFFF?text=設備損壞狀況'
             }
-        ]
+        ],
+        reviewStatus: '不通過'
     },
     { 
         id: 'GM009', 
@@ -199,7 +202,8 @@ const sampleData = [
                 name: '專家評估現場',
                 src: 'https://via.placeholder.com/800x600/4682B4/FFFFFF?text=專家評估現場'
             }
-        ]
+        ],
+        reviewStatus: null
     },
     { 
         id: 'GM010', 
@@ -215,7 +219,8 @@ const sampleData = [
                 name: '優化後測試',
                 src: 'https://via.placeholder.com/800x600/90EE90/FFFFFF?text=優化後測試'
             }
-        ]
+        ],
+        reviewStatus: '通過'
     }
 ];
 
@@ -255,6 +260,7 @@ function renderTable() {
             <th>廠商檢測異常原因</th>
             <th>圖片</th>
             <th>備註</th>
+            <th>審核狀態</th>
             <th>操作</th>
         `;
     }
@@ -284,6 +290,7 @@ function renderTable() {
             <td>${row.vendorReason || ''}</td>
             <td>${imgHtml}</td>
             <td>${row.note}</td>
+            <td>${row.reviewStatus ? `<span class="badge ${row.reviewStatus === '通過' ? 'bg-success' : 'bg-danger'}">${row.reviewStatus}</span>` : '<span class="text-muted">未審核</span>'}</td>
             <td>
                 <button class="btn btn-sm btn-outline-primary edit-btn" data-index="${index}">編輯</button>
             </td>
